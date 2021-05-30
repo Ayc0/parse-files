@@ -23,7 +23,7 @@ parseFiles({
   });
 ```
 
-### Worker file
+## Worker file
 
 ```javascript
 const { workerData, parentPort } = require("worker_threads");
