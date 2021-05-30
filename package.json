@@ -3,6 +3,12 @@
 	"private": true,
 	"version": "0.0.0",
 	"main": "src/index.js",
+	"files": [
+		"src"
+	],
+	"scripts": {
+		"test": "node tests/index.js"
+	},
 	"dependencies": {
 		"glob": "^7.1.7"
 	}
