@@ -1,11 +1,13 @@
 # parse-files
 
-This tool helps you to run scripts on files in a multi-threaded way.
+This tool helps you to run scripts in parallel in a multi-threaded way.
 
 To run it, you need to create 2 files:
 
-- your main one that will gather the results of your script run on the files
-- a worker file that will be run on each file
+- your main one that will gather the data sent by your workers
+- a worker file that will compute data based on what you provide to the main file.
+
+This tool will automatically spawn a pool of workers, and won't spawn more that what you allow it to do. Once a worker is done, a new one will be spawn (if a few remaining task still need to be performed).
 
 ## Main file
 
@@ -14,9 +16,8 @@ const parseFiles = require("parse-files");
 
 parseFiles({
 	workerPath: require.resolve("./worker.js"), // path to the worker file, we recommend to use absolute path to avoid issues with the cwd
-	filePattern: ["./fileA.js", "./fileB.txt"], // files you want the worker to be applied on
-	threads: 4, // number of threads, the default is the number of CPUs - 1,
-	getWorkerData: (filePath) => ({ filePath, hello: "world" }), // function that determines what's passed to the workers, the default is `(filePath) => ({ filePath })`
+	data: [{ foo: "bar", hello: "world" }], // array of values passed to the worker. Each element will be passed to the worker with the `workerData` variable
+	threads: 4, // number of threads, the default is the "number of CPUs - 1"
 }).then((results) => {
 	// this will retrieve an array with each result returned by the worker file
 });
@@ -27,8 +28,8 @@ parseFiles({
 ```javascript
 const { workerData, parentPort } = require("worker_threads");
 
-// Data returned by `getWorkerData`
-const { filePath, hello } = workerData;
+// Value contained in each element of `data`
+const { foo, hello } = workerData;
 
 const results = serializable_data_of_your_choice;
 

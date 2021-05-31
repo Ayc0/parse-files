@@ -17,7 +17,7 @@ function main() {
 
 function checkItWorks() {
 	parseFiles({
-		files,
+		data: files,
 		threads: 3,
 		workerPath: require.resolve("./worker-default.js"),
 	})
@@ -31,12 +31,9 @@ function checkItWorks() {
 
 function checkItCanReceiveCustomData() {
 	parseFiles({
-		files,
+		data: files.map((filePath) => ({ filePathLength: filePath.length })),
 		threads: 5,
 		workerPath: require.resolve("./worker-custom-data.js"),
-		getWorkerData: (filePath) => ({
-			filePathLength: filePath.length,
-		}),
 	})
 		.then((res) => {
 			console.log("File path lengths:", res);
@@ -49,7 +46,7 @@ function checkItCanReceiveCustomData() {
 function checkItThrowsOnError() {
 	assert.rejects(
 		parseFiles({
-			files,
+			data: files,
 			threads: 3,
 			workerPath: require.resolve("./worker-throws.js"),
 		}),

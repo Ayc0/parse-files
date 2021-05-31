@@ -3,12 +3,7 @@ const glob = require("glob");
 
 const { Worker } = require("worker_threads");
 
-async function main({
-	files,
-	workerPath,
-	getWorkerData = (filePath) => ({ filePath }),
-	threads = os.cpus().length - 1,
-} = {}) {
+async function main({ data, workerPath, threads = os.cpus().length - 1 } = {}) {
 	const responses = [];
 
 	const pool = [];
@@ -21,12 +16,12 @@ async function main({
 		);
 	}
 
-	for (const filePath of files) {
+	for (const workerData of data) {
 		if (pool.length === threads) {
 			await waitForRelease();
 		}
 
-		const task = newTask(workerPath, filePath, getWorkerData).then((res) => {
+		const task = newTask(workerPath, workerData).then((res) => {
 			responses.push(res);
 		});
 		pool.push(task);
@@ -37,9 +32,9 @@ async function main({
 	return responses;
 }
 
-function newTask(workerPath, fileToParse, getWorkerData) {
+function newTask(workerPath, workerData) {
 	const worker = new Worker(workerPath, {
-		workerData: getWorkerData(fileToParse),
+		workerData,
 	});
 
 	return new Promise((resolve, reject) => {
