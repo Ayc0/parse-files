@@ -3,18 +3,12 @@ const glob = require("glob");
 
 const { Worker } = require("worker_threads");
 
-const DEFAULT_GLOB_OPTIONS = { nodir: true };
-
 async function main({
-	filePattern,
+	files,
 	workerPath,
+	getWorkerData = (filePath) => ({ filePath }),
 	threads = os.cpus().length - 1,
-	globOptions,
 } = {}) {
-	const listOfFiles = glob.sync(filePattern, {
-		...DEFAULT_GLOB_OPTIONS,
-		...globOptions,
-	});
 	const responses = [];
 
 	const pool = [];
@@ -27,12 +21,12 @@ async function main({
 		);
 	}
 
-	for (const filePath of listOfFiles) {
+	for (const filePath of files) {
 		if (pool.length === threads) {
 			await waitForRelease();
 		}
 
-		const task = newTask(workerPath, filePath).then((res) => {
+		const task = newTask(workerPath, filePath, getWorkerData).then((res) => {
 			responses.push(res);
 		});
 		pool.push(task);
@@ -43,11 +37,9 @@ async function main({
 	return responses;
 }
 
-function newTask(workerPath, fileToParse) {
+function newTask(workerPath, fileToParse, getWorkerData) {
 	const worker = new Worker(workerPath, {
-		workerData: {
-			filePath: fileToParse,
-		},
+		workerData: getWorkerData(fileToParse),
 	});
 
 	return new Promise((resolve, reject) => {
